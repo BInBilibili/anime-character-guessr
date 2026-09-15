@@ -168,7 +168,7 @@ const SETTINGS_TEXT = {
     footerHint: '*设置改动点了才会生效！否则下一把生效',
     bgmAccel: '启用BGM加速',
     bgmAccelNote: '国内访问建议启用',
-    bgmAccelTitle: '开启后使用加速镜像访问 Bangumi API，适合官方接口不可用的网络环境。',
+    bgmAccelTitle: '开启后使用加速镜像访问 Bangumi API 与图床，适合官方接口及图片不可用的网络环境。',
     presetMessages: {
       二游高手: '那很有生活了😅',
       MOBA糕手: '风暴要火'
@@ -256,7 +256,7 @@ const SETTINGS_TEXT = {
     footerHint: '*Changes only take effect after applying settings; otherwise they apply next game',
     bgmAccel: 'Enable BGM Accel',
     bgmAccelNote: 'Recommended for users in Mainland China',
-    bgmAccelTitle: 'Use an accelerated Bangumi API mirror when the official endpoint is unreachable.',
+    bgmAccelTitle: 'Use an accelerated Bangumi API and image mirror when official endpoints are unreachable.',
     presetMessages: {
       二游高手: 'That is quite a lifestyle.',
       MOBA糕手: 'The storm is coming.'
