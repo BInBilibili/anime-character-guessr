@@ -418,7 +418,7 @@ function SettingsPopup({ gameSettings, onSettingsChange, onClose, onRestart, hid
     
     setIsSearching(true);
     try {
-      const results = await searchSubjects(searchQuery);
+      const results = await searchSubjects(searchQuery, gameSettings);
       setSearchResults(results);
     } catch (error) {
       console.error('Search failed:', error);
