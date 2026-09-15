@@ -200,7 +200,7 @@ function GuessesTable({ guesses, answerCharacter, collapsedCount = 0, bannedTags
         <tbody>
           {displayGuesses.length === 0 ? (
             <tr className="empty-guesses-row">
-              <td colSpan={externalTagMode ? 4 : 6} className="empty-guesses-cell">
+              <td colSpan={externalTagMode ? 6 : 8} className="empty-guesses-cell">
                 <div className="empty-guesses-content">
                   <span className="empty-guesses-icon">💡</span>
                   <span className="empty-guesses-text">

@@ -1881,12 +1881,6 @@ const Multiplayer = () => {
                     locale={locale}
                     placeholder={guesses.length === 0 ? (locale === 'en' ? 'Try guessing any character to start...' : '随便猜一个角色开始吧...') : undefined}
                   />
-                  {isGameStarted && !gameEnd && !isObserver && guesses.length === 0 && (
-                    <div className="first-guess-prompt">
-                      <span className="first-guess-badge">💡 提示</span>
-                      <span>{locale === 'en' ? 'Try guessing any character above to reveal your first clues!' : '在上方搜索框随便猜一个角色开始吧，对比线索会为你指明方向！'}</span>
-                    </div>
-                  )}
                   {/* 同步模式等待提示 */}
                   {gameSettings.syncMode && (
                     <div className="sync-waiting-banner">
