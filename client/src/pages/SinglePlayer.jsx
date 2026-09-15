@@ -448,6 +448,7 @@ function SinglePlayer() {
           gameSettings={currentGameSettings}
           finishInit={finishInit}
           locale={locale}
+          placeholder={guesses.length === 0 ? (locale === 'en' ? 'Try guessing any character to start...' : '随便猜一个角色开始吧...') : undefined}
         />
       </div>
 

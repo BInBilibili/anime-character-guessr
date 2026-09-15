@@ -773,4 +773,44 @@
 
 .flex-spacer {
   flex: 1;
-} 
+}
+
+/* Empty State Guidance */
+
+.empty-guesses-cell {
+  padding: 36px 16px !important;
+  background: #ffffff !important;
+  color: #64748b;
+  text-align: center;
+}
+
+.empty-guesses-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.empty-guesses-icon {
+  font-size: 24px;
+}
+
+.empty-guesses-mobile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 16px;
+}

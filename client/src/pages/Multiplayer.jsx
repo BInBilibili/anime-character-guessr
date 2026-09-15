@@ -24,6 +24,21 @@ import axios from 'axios';
 const secret = import.meta.env.VITE_AES_SECRET || 'My-Secret-Key';
 const SOCKET_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
+const getStoredAvatarPayload = () => {
+  try {
+    let id = sessionStorage.getItem('avatarId');
+    let img = sessionStorage.getItem('avatarImage');
+    if (id === null || id === undefined) {
+      id = localStorage.getItem('avatarId');
+      img = localStorage.getItem('avatarImage');
+    }
+    if (id !== null && id !== undefined && id !== '0' && id !== 0) {
+      return { avatarId: id, avatarImage: img };
+    }
+  } catch (e) { /* ignore */ }
+  return {};
+};
+
 const MULTIPLAYER_TEXT = {
   zh: {
     lobbyTitle: '多人游戏大厅',
@@ -547,9 +562,7 @@ const Multiplayer = () => {
       }
       
       if (isJoined && roomId && username) {
-        const avatarId = sessionStorage.getItem('avatarId');
-        const avatarImage = sessionStorage.getItem('avatarImage');
-        const avatarPayload = avatarId !== null ? { avatarId, avatarImage } : {};
+        const avatarPayload = getStoredAvatarPayload();
         
         newSocket.emit('joinRoom', { roomId, username, ...avatarPayload });
         newSocket.emit('requestGameSettings', { roomId });
@@ -757,9 +770,7 @@ const Multiplayer = () => {
         typeof message === 'string' &&
         message.includes('换个名字吧')
       ) {
-        const avatarId = sessionStorage.getItem('avatarId');
-        const avatarImage = sessionStorage.getItem('avatarImage');
-        const avatarPayload = avatarId !== null ? { avatarId, avatarImage } : {};
+        const avatarPayload = getStoredAvatarPayload();
         setTimeout(() => {
           socketRef.current?.emit('joinRoom', { roomId, username, ...avatarPayload });
           socketRef.current?.emit('requestGameSettings', { roomId });
@@ -779,6 +790,8 @@ const Multiplayer = () => {
         if (isAvatarError) {
           sessionStorage.removeItem('avatarId');
           sessionStorage.removeItem('avatarImage');
+          localStorage.removeItem('avatarId');
+          localStorage.removeItem('avatarImage');
         }
         setIsJoined(false);
         if (isJoinRoomError) {
@@ -789,12 +802,19 @@ const Multiplayer = () => {
         return;
       }
 
+      if (normalizedMessage.includes('游戏未开始或已结束') || normalizedMessage.includes('房间不存在或游戏未开始')) {
+        console.warn(`[Socket Warning] ${normalizedMessage}`);
+        return;
+      }
+
       alert(text.socketError(message));
       setError(message);
       // 只在特定情况下将玩家踢出房间，游戏开始相关错误不应该踢出房主
       if (isAvatarError) {
         sessionStorage.removeItem('avatarId');
         sessionStorage.removeItem('avatarImage');
+        localStorage.removeItem('avatarId');
+        localStorage.removeItem('avatarImage');
         setIsJoined(false);
         navigate(`/multiplayer${langQuery}`);
       }
@@ -995,9 +1015,7 @@ const Multiplayer = () => {
 
       // 延迟执行加入，确保 socket 已连接
       setTimeout(() => {
-        const avatarId = sessionStorage.getItem('avatarId');
-        const avatarImage = sessionStorage.getItem('avatarImage');
-        const avatarPayload = avatarId !== null ? { avatarId, avatarImage } : {};
+        const avatarPayload = getStoredAvatarPayload();
 
         socketRef.current?.emit('joinRoom', { roomId, username: pendingUsername, ...avatarPayload });
         socketRef.current?.emit('requestGameSettings', { roomId });
@@ -1040,9 +1058,7 @@ const Multiplayer = () => {
 
     setError('');
     // Only declare these variables once
-    const avatarId = sessionStorage.getItem('avatarId');
-    const avatarImage = sessionStorage.getItem('avatarImage');
-    const avatarPayload = avatarId !== null ? { avatarId, avatarImage } : {};
+    const avatarPayload = getStoredAvatarPayload();
     if (isHost) {
       socketRef.current?.emit('createRoom', { roomId, username, ...avatarPayload });
       socketRef.current?.emit('updateGameSettings', { roomId, settings: gameSettings });
@@ -1863,6 +1879,7 @@ const Multiplayer = () => {
                     gameSettings={gameSettings}
                     finishInit={isGameStarted}
                     locale={locale}
+                    placeholder={guesses.length === 0 ? (locale === 'en' ? 'Try guessing any character to start...' : '随便猜一个角色开始吧...') : undefined}
                   />
                   {/* 同步模式等待提示 */}
                   {gameSettings.syncMode && (

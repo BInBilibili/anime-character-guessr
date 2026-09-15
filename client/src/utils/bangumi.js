@@ -818,18 +818,21 @@ function getPossibleSubjectTypes(gameSettings) {
     return [1, 2, 4, 6];
   }
 
-  return [2];
+  // 二游/米哈游等以游戏为主的目录预设
+  if (gameSettings.useIndex && ['77344', '77186', '76637'].includes(String(gameSettings.indexId))) {
+    return [4, 2];
+  }
+
+  return [2, 4];
 }
 
 async function searchSubjects(keyword, gameSettings = null) {
   try {
     const types = getPossibleSubjectTypes(gameSettings);
 
+    // 查询所有作品类型，统一缓存，避免因只按单类型搜索导致跨模式查询无结果或缓存冲突
     const response = await axios.post(`${getBgmApiUrl()}/v0/search/subjects`, {
-      keyword: keyword.trim(),
-      filter: {
-        type: types
-      }
+      keyword: keyword.trim()
     });
 
     if (!response.data || !response.data.data) {
@@ -843,14 +846,26 @@ async function searchSubjects(keyword, gameSettings = null) {
       6: '三次元'
     };
 
-    return response.data.data.map(subject => ({
+    const formatted = response.data.data.map(subject => ({
       id: subject.id,
       name: subject.name,
       name_cn: subject.name_cn,
       image: fixImageUrl(subject.images?.grid || subject.images?.medium || ''),
       date: subject.date,
-      type: typeLabelMap[subject.type] || '动漫'
+      type: typeLabelMap[subject.type] || '动漫',
+      rawType: subject.type
     }));
+
+    // 根据当前模式偏好类型排序，匹配项置顶
+    if (types && types.length > 0) {
+      formatted.sort((a, b) => {
+        const aMatch = types.includes(a.rawType) ? 0 : 1;
+        const bMatch = types.includes(b.rawType) ? 0 : 1;
+        return aMatch - bMatch;
+      });
+    }
+
+    return formatted;
   } catch (error) {
     console.error('Error searching subjects:', error);
     return [];

@@ -1507,6 +1507,7 @@ function setupSocket(io, rooms) {
                     room.waitingForAnswer = false;
                     revertSetterObservers(room, roomId, io);
                     io.to(roomId).emit('waitForAnswerCanceled', { message: `指定的出题人 ${disconnectedPlayer.username} 已离开，等待被取消` });
+                    broadcastPlayers(roomId, room, { isPublic: room.isPublic, answerSetterId: null });
                 }
 
                 if (room.host === socket.id) {
@@ -1656,6 +1657,7 @@ function setupSocket(io, rooms) {
                 room.waitingForAnswer = false;
                 revertSetterObservers(room, roomId, io);
                 io.to(roomId).emit('waitForAnswerCanceled', { message: `指定的出题人 ${playerToKick.username} 已被踢出，等待已取消` });
+                broadcastPlayers(roomId, room, { isPublic: room.isPublic, answerSetterId: null });
             }
 
             io.to(playerId).emit('playerKicked', { playerId, username: playerToKick.username });

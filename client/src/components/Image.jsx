@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { fixImageUrl } from '../utils/imageUrl.js';
+import { toAccelBgmImageUrl, enableBgmAccelAfterBlock } from '../utils/bgmApi.js';
 
 /**
  * 带重试功能的图片组件
@@ -54,8 +55,12 @@ function Image({
       retryTimeoutRef.current = setTimeout(() => {
         if (!mountedRef.current) return;
         setRetryCount(nextRetry);
-        // 添加时间戳绕过缓存
-        const fixed = fixImageUrl(src);
+        // 如果官方图床加载失败，尝试自动切换到图床加速镜像
+        let fixed = fixImageUrl(src);
+        if (fixed.startsWith('https://lain.bgm.tv') || fixed.startsWith('http://lain.bgm.tv')) {
+          enableBgmAccelAfterBlock();
+          fixed = toAccelBgmImageUrl(src);
+        }
         const separator = fixed.includes('?') ? '&' : '?';
         setCurrentSrc(`${fixed}${separator}_retry=${Date.now()}`);
       }, retryDelay * nextRetry); // 指数退避

@@ -63,18 +63,29 @@ const PlayerList = ({ players, socket, isGameStarted, handleReadyToggle, onAnony
   ];
 
   // Add socket event listener for waitForAnswer
- useEffect(() => {
+  useEffect(() => {
     if (socket) {
-      socket.on('waitForAnswer', () => {
-        setWaitingForAnswer(true);
-      });
+      const handleWait = () => setWaitingForAnswer(true);
+      const handleCancel = () => setWaitingForAnswer(false);
+      const handleStart = () => setWaitingForAnswer(false);
 
-      // Reset waiting state when game starts
-      socket.on('gameStart', () => {
-        setWaitingForAnswer(false);
-      });
+      socket.on('waitForAnswer', handleWait);
+      socket.on('waitForAnswerCanceled', handleCancel);
+      socket.on('gameStart', handleStart);
+
+      return () => {
+        socket.off('waitForAnswer', handleWait);
+        socket.off('waitForAnswerCanceled', handleCancel);
+        socket.off('gameStart', handleStart);
+      };
     }
   }, [socket]);
+
+  useEffect(() => {
+    if (!answerSetterId) {
+      setWaitingForAnswer(false);
+    }
+  }, [answerSetterId]);
 
   // Add click outside handler to close menu
   useEffect(() => {

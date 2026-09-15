@@ -183,7 +183,15 @@ class RequestCache {
   }
 
   _generateCacheKey(method, url, config) {
-    const configString = Object.keys(config).length === 0 ? '' : `:${CryptoJS.MD5(JSON.stringify(config)).toString()}`;
+    const sortObject = (obj) => {
+      if (obj === null || typeof obj !== 'object') return obj;
+      if (Array.isArray(obj)) return obj.map(sortObject);
+      return Object.keys(obj).sort().reduce((acc, key) => {
+        acc[key] = sortObject(obj[key]);
+        return acc;
+      }, {});
+    };
+    const configString = Object.keys(config).length === 0 ? '' : `:${CryptoJS.MD5(JSON.stringify(sortObject(config))).toString()}`;
     return `${method}:${url}${configString}`;
   }
 

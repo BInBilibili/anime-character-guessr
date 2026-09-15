@@ -52,13 +52,8 @@ function GameInfo({ gameEnd, guessesLeft, onRestart, finishInit, hints, useHints
           </div>
           {!finishInit && !initFailed && (
             <div className="game-loading-banner">
+              <span className="loading-spinner-ring"></span>
               <span>{text.questionLoading}</span>
-              <div className="loading-dots-orbit">
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-              </div>
             </div>
           )}
           {useHints && hints && useHints.map((val, idx) => (
