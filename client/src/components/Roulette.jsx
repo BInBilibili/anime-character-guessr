@@ -45,7 +45,10 @@ const Roulette = ({ defaultExpanded = false, locale = 'zh' }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [initialAvatarId] = useState(() => {
-    return sessionStorage.getItem('avatarId') !== null;
+    const s = sessionStorage.getItem('avatarId');
+    const l = localStorage.getItem('avatarId');
+    const id = s !== null ? s : l;
+    return id !== null && id !== '0';
   });
   const [redeemCode, setRedeemCode] = useState('');
   const [redeeming, setRedeeming] = useState(false);
@@ -85,6 +88,8 @@ const Roulette = ({ defaultExpanded = false, locale = 'zh' }) => {
       if (response.data.avatarId && response.data.avatarImage) {
         sessionStorage.setItem('avatarId', response.data.avatarId);
         sessionStorage.setItem('avatarImage', response.data.avatarImage);
+        localStorage.setItem('avatarId', response.data.avatarId);
+        localStorage.setItem('avatarImage', response.data.avatarImage);
 
         setSelected(null);
         setRedeemCode('');
@@ -109,6 +114,8 @@ const Roulette = ({ defaultExpanded = false, locale = 'zh' }) => {
       if (rouletteData[idx] && rouletteData[idx].id !== undefined) {
         sessionStorage.setItem('avatarId', rouletteData[idx].id);
         sessionStorage.setItem('avatarImage', rouletteData[idx].image_grid);
+        localStorage.setItem('avatarId', rouletteData[idx].id);
+        localStorage.setItem('avatarImage', rouletteData[idx].image_grid);
       }
       setFlipped((prev) => {
         const next = [...prev];
@@ -120,6 +127,8 @@ const Roulette = ({ defaultExpanded = false, locale = 'zh' }) => {
       if (rouletteData[idx] && rouletteData[idx].id !== undefined) {
         sessionStorage.setItem('avatarId', rouletteData[idx].id);
         sessionStorage.setItem('avatarImage', rouletteData[idx].image_grid);
+        localStorage.setItem('avatarId', rouletteData[idx].id);
+        localStorage.setItem('avatarImage', rouletteData[idx].image_grid);
       }
     }
   };
@@ -179,7 +188,10 @@ const Roulette = ({ defaultExpanded = false, locale = 'zh' }) => {
           {initialAvatarId && selected === null ? null : (
             <button className="roulette-cancel-btn" onClick={() => {
               setSelected(null);
-              sessionStorage.setItem('avatarId', 0);
+              sessionStorage.setItem('avatarId', '0');
+              localStorage.setItem('avatarId', '0');
+              sessionStorage.removeItem('avatarImage');
+              localStorage.removeItem('avatarImage');
             }}>
               {text.cancel}
             </button>
