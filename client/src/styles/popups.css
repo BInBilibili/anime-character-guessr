@@ -43,6 +43,36 @@
   overflow: hidden;
 }
 
+.popup-body {
+  overflow-y: auto;
+  flex: 1;
+  max-height: calc(90vh - 80px);
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
+}
+
+.tag-contribution-container {
+  display: flex;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .popup-overlay {
+    padding: 8px;
+  }
+  .popup-content {
+    width: 96%;
+    max-height: 94vh;
+    padding: 12px;
+  }
+  .popup-body {
+    max-height: calc(94vh - 60px);
+  }
+  .tag-contribution-container {
+    flex-direction: column;
+  }
+}
+
 .popup-close {
   position: absolute;
   top: 16px;

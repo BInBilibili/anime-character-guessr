@@ -20,3 +20,21 @@
   padding-top: 60px;
   width: 100%;
 }
+
+@media (max-width: 640px) {
+  .single-player-container .social-links {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin: 8px auto;
+    max-width: 96vw;
+    overflow-x: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .single-player-container .search-bar {
+    padding-top: 10px;
+  }
+}
+
