@@ -448,7 +448,14 @@ function SinglePlayer() {
           gameSettings={currentGameSettings}
           finishInit={finishInit}
           locale={locale}
+          placeholder={guesses.length === 0 ? (locale === 'en' ? 'Try guessing any character to start...' : '随便猜一个角色开始吧...') : undefined}
         />
+        {finishInit && !gameEnd && guesses.length === 0 && (
+          <div className="first-guess-prompt">
+            <span className="first-guess-badge">💡 提示</span>
+            <span>{locale === 'en' ? 'Try guessing any character above to reveal your first clues!' : '在上方搜索框随便猜一个角色开始吧，对比线索会为你指明方向！'}</span>
+          </div>
+        )}
       </div>
 
       {currentGameSettings.timeLimit && (

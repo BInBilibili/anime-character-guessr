@@ -773,4 +773,80 @@
 
 .flex-spacer {
   flex: 1;
-} 
+}
+
+/* First Guess Prompt and Empty State Guidance */
+.first-guess-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px auto 0;
+  padding: 8px 16px;
+  background: rgba(0, 132, 180, 0.08);
+  border: 1px dashed rgba(0, 132, 180, 0.35);
+  border-radius: 20px;
+  max-width: 500px;
+  font-size: 13px;
+  color: #0077a8;
+  animation: gentle-pulse 2.5s infinite ease-in-out;
+  box-sizing: border-box;
+}
+
+.first-guess-badge {
+  font-weight: 600;
+  background: #0084b4;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+@keyframes gentle-pulse {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.95;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(0, 132, 180, 0.15);
+  }
+}
+
+.empty-guesses-cell {
+  padding: 36px 16px !important;
+  background: #ffffff !important;
+  color: #64748b;
+  text-align: center;
+}
+
+.empty-guesses-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.empty-guesses-icon {
+  font-size: 24px;
+}
+
+.empty-guesses-mobile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 16px;
+}

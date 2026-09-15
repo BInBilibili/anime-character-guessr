@@ -198,8 +198,21 @@ function GuessesTable({ guesses, answerCharacter, collapsedCount = 0, bannedTags
           </tr>
         </thead>
         <tbody>
-          {displayGuesses.map((guess, guessIndex) => (
-            <tr key={guessIndex}>
+          {displayGuesses.length === 0 ? (
+            <tr className="empty-guesses-row">
+              <td colSpan={externalTagMode ? 4 : 6} className="empty-guesses-cell">
+                <div className="empty-guesses-content">
+                  <span className="empty-guesses-icon">💡</span>
+                  <span className="empty-guesses-text">
+                    {locale === 'en'
+                      ? 'No guesses yet! Try searching and guessing any character to start.'
+                      : '还没有进行任何猜测，在上方搜索框随便猜一个角色开始吧！'}
+                  </span>
+                </div>
+              </td>
+            </tr>
+          ) : displayGuesses.map((guess, guessIndex) => (
+              <tr key={guessIndex}>
               <td data-label={text.avatar} className="cell-icon">
                 <Image src={guess.icon} alt="character" className="character-icon" />
               </td>
@@ -301,7 +314,16 @@ function GuessesTable({ guesses, answerCharacter, collapsedCount = 0, bannedTags
 
       {/* Mobile-friendly list: shown on small screens */}
       <div className="guesses-list" aria-hidden="false" ref={listRef}>
-        {displayGuesses.map((guess, idx) => (
+        {displayGuesses.length === 0 ? (
+          <div className="empty-guesses-mobile-card">
+            <span className="empty-guesses-icon">💡</span>
+            <span className="empty-guesses-text">
+              {locale === 'en'
+                ? 'No guesses yet! Try searching and guessing any character to start.'
+                : '还没有进行任何猜测，在上方搜索框随便猜一个角色开始吧！'}
+            </span>
+          </div>
+        ) : displayGuesses.map((guess, idx) => (
           <div key={idx} className={`guess-card ${guess.isAnswer ? 'correct' : ''}`}>
             <div className="guess-card-header">
               <Image src={guess.icon} alt="character" className="character-icon" />
