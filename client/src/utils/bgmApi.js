@@ -4,8 +4,9 @@ const OFFICIAL_BGM_API_URL = 'https://api.bgm.tv';
 
 const DEFAULT_BGM_API_URL = import.meta.env.VITE_BGM_API_URL || OFFICIAL_BGM_API_URL;
 const ACCEL_BGM_API_URL = import.meta.env.VITE_BGM_ACC_API_URL || '';
-const DEFAULT_BGM_IMAGE_ACCEL_URL = 'https://bangumi.baka.website';
-const ACCEL_BGM_LAIN_URL = import.meta.env.VITE_BGM_ACC_LAIN_URL || import.meta.env.VITE_BGM_LAIN_URL || (ACCEL_BGM_API_URL ? ACCEL_BGM_API_URL : DEFAULT_BGM_IMAGE_ACCEL_URL);
+// 本地数据模式全程只用本仓库资源，因此不再默认回落到第三方加速镜像：
+// 只有构建时显式提供镜像地址，「启用BGM加速」才会出现。
+const ACCEL_BGM_LAIN_URL = import.meta.env.VITE_BGM_ACC_LAIN_URL || import.meta.env.VITE_BGM_LAIN_URL || '';
 
 function normalizeBaseUrl(url) {
   return String(url || '').replace(/\/+$/, '');
@@ -89,7 +90,7 @@ export function getBgmApiUrl() {
 
 /** Rewrite an official Bangumi image URL to the accel mirror */
 export function toAccelBgmImageUrl(url) {
-  if (!url) return url;
-  const accelLain = normalizeBaseUrl(ACCEL_BGM_LAIN_URL || DEFAULT_BGM_IMAGE_ACCEL_URL);
+  if (!url || !ACCEL_BGM_LAIN_URL) return url;
+  const accelLain = normalizeBaseUrl(ACCEL_BGM_LAIN_URL);
   return String(url).replace(/^https?:\/\/lain\.bgm\.tv/, accelLain);
 }

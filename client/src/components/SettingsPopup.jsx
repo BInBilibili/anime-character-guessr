@@ -1146,25 +1146,7 @@ function SettingsPopup({ gameSettings, onSettingsChange, onClose, onRestart, hid
               </div>
             </div>
 
-            {canUseBgmAccel && (
-              <div className="settings-group">
-                <div className="settings-row compact-row">
-                  <div className="setting-item-compact">
-                    <label
-                      className="settings-label"
-                      title={text.bgmAccelTitle}
-                    >
-                      {text.bgmAccel}
-                    </label>
-                    <ToggleSwitch
-                      checked={bgmAccel}
-                      onChange={handleBgmAccelChange}
-                    />
-                    <span style={{ fontSize: '13px', color: '#6b7280' }}>{text.bgmAccelNote}</span>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* 「启用BGM加速」已移除：本地数据模式全程只用本仓库资源，没有需要加速的官方接口。 */}
 
           </div>
         </div>

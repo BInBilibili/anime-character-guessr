@@ -131,10 +131,8 @@ const Home = ({ locale = 'zh' }) => {
       intervalId = setInterval(fetchRoomCount, 5000);
     }
 
-    if (!isEnglish && !sessionStorage.getItem('hasSeenWelcomePopup')) {
-      sessionStorage.setItem('hasSeenWelcomePopup', '1');
-      setShowWelcomePopup(true);
-    }
+    // 欢迎/公告弹窗不再自动弹出（本地化版本无需 QQ群 / Issue 引导）。
+    // 需要时仍可从底部「公告」按钮打开。
 
     return () => { mounted = false; clearInterval(intervalId); };
   }, [isEnglish]);

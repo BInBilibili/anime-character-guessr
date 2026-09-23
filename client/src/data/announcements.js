@@ -30,7 +30,6 @@ const announcements = [
     content: `
       <b>优化与调整：</b><br/>
       <ul>
-        <li>「启用BGM加速」现已支持 Bangumi 图片加速</li>
         <li>字体改为本地引入</li>
         <li>样式优化</li>
         <li>移动端体验优化：调整移动端社交栏与搜索框布局，修复移动端部分弹窗无法触控滚动的问题</li>
@@ -49,12 +48,6 @@ const announcements = [
     version: '1.7.4',
     date: '2026-08-16',
     content: `
-      <b>新功能：</b><br/>
-      <ul>
-        <li>设置中新增「启用BGM加速」（国内访问建议启用）</li>
-        <li>在中国大陆端点（ccb.baka.website）默认开启加速</li>
-        <li>检测到官方 Bangumi API 不可用时，自动切换到加速镜像</li>
-      </ul>
       <b>优化与调整：</b><br/>
       <ul>
         <li>移除原先的网络环境跳转大弹窗</li>
