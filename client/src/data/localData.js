@@ -9,7 +9,8 @@
  *   chars.json      { cid: [name, nameCn, nameEn, gender, popularity, "shard/base", summary] }
  *   char_subj.json  { cid: [[subjectId, "主角"|"配角", type], ...] }
  *   char_pers.json  { cid: [vaName, ...] }
- *   subjects.json   { sid: [name, nameCn, date, type, locked, score, total, metaTags[]] }
+ *   subjects.json   { sid: [name, nameCn, date, type, locked, score, total, metaTags[], "shard/base"|""] }
+ *                   （末项为 covers/ 下的封面路径，空串表示未收录封面）
  *   subj_tags.json  { sid: [["tag", count], ...] }
  *   subj_chars.json { sid: [[cid, "主角"|"配角"], ...] }
  *   search.json     [ [cid, name, nameCn, nameEn, aliases[]], ... ]  按 popularity 降序
@@ -97,6 +98,17 @@ export function localImageUrl(img) {
   const i = img.indexOf('/');
   const path = i === -1 ? img : img.slice(0, i).toLowerCase() + img.slice(i);
   return `${BASE}chars/${path}.webp`;
+}
+
+/**
+ * 作品封面。cover 形如 "q2/347533_HF5CX"（covers/ 下的相对路径，无扩展名）。
+ * shard 小写规则与角色图一致（Windows 大小写不敏感 vs Pages 敏感）。
+ */
+export function localSubjectImage(cover) {
+  if (!cover) return '';
+  const i = cover.indexOf('/');
+  const path = i === -1 ? cover : cover.slice(0, i).toLowerCase() + cover.slice(i);
+  return `${BASE}covers/${path}.webp`;
 }
 
 // ---------- 随机选题 ----------
@@ -193,7 +205,7 @@ export function searchLocalSubjects(keyword, limit = 50) {
     const name = s[0] || '';
     const nameCn = s[1] || '';
     if (name.toLowerCase().includes(kw) || nameCn.toLowerCase().includes(kw)) {
-      hits.push([sid, s[0], s[1], s[2], s[3], s[4], s[5], s[6]]);
+      hits.push([sid, s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[8] || '']);
     }
   }
   hits.sort((a, b) => (b[7] || 0) - (a[7] || 0));

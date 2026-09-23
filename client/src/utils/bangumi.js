@@ -13,6 +13,7 @@ import {
   localSubjectTags,
   localSubjectChars,
   localImageUrl,
+  localSubjectImage,
   searchLocalCharacters,
   searchLocalSubjects,
   pickRandomSubjectId,
@@ -992,15 +993,19 @@ async function searchSubjects(keyword, gameSettings = null) {
     const types = getPossibleSubjectTypes(gameSettings);
     const typeLabelMap = { 1: '书籍', 2: '动漫', 4: '游戏', 6: '三次元' };
     const formatted = searchLocalSubjects(keyword, 50).map(
-      ([sid, name, nameCn, date, type]) => ({
-        id: Number(sid),
-        name,
-        name_cn: nameCn,
-        image: '', // 本地模式不含作品封面（角色图才是本地化的重点）
-        date,
-        type: typeLabelMap[type] || '动漫',
-        rawType: type,
-      })
+      (row) => {
+        const [sid, name, nameCn, date, type] = row;
+        return {
+          id: Number(sid),
+          name,
+          name_cn: nameCn,
+          // row[8] = "shard/base" under covers/ (empty when that cover is not shipped)
+          image: localSubjectImage(row[8]),
+          date,
+          type: typeLabelMap[type] || '动漫',
+          rawType: type,
+        };
+      }
     );
     if (types && types.length > 0) {
       formatted.sort((a, b) => {
