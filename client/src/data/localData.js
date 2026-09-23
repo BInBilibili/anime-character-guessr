@@ -43,7 +43,10 @@ export function loadLocalData(onProgress) {
     const out = {};
     for (let i = 0; i < FILES.length; i++) {
       const name = FILES[i];
-      const res = await fetch(`${DATA_BASE}${name}.json`, { cache: 'force-cache' });
+      // 'no-cache' = always revalidate (ETag → 304 when unchanged, so it stays cheap).
+      // 'force-cache' served a stale copy of these unversioned JSON URLs forever,
+      // which made new data (e.g. subject covers) never show up without a hard refresh.
+      const res = await fetch(`${DATA_BASE}${name}.json`, { cache: 'no-cache' });
       if (!res.ok) {
         _promise = null;
         throw new Error(`本地数据加载失败：${name}.json (HTTP ${res.status})`);
