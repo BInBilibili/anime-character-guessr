@@ -41,12 +41,20 @@ export function loadLocalData(onProgress) {
   if (_promise) return _promise;
   _promise = (async () => {
     const out = {};
+    // version.json is tiny (~15 B) and always revalidated. It stamps the data URLs
+    // so the browser can cache the ~31 MB of JSON forever: GitHub Pages ignores
+    // If-None-Match, so revalidating those URLs would re-download everything on
+    // every page load. New data -> new hash -> new URLs -> picked up immediately.
+    let dataVersion = '';
+    try {
+      const vr = await fetch(`${DATA_BASE}version.json`, { cache: 'no-cache' });
+      if (vr.ok) dataVersion = (await vr.json()).v || '';
+    } catch { /* fall back to unversioned URLs */ }
+    const suffix = dataVersion ? `?v=${dataVersion}` : '';
+
     for (let i = 0; i < FILES.length; i++) {
       const name = FILES[i];
-      // 'no-cache' = always revalidate (ETag → 304 when unchanged, so it stays cheap).
-      // 'force-cache' served a stale copy of these unversioned JSON URLs forever,
-      // which made new data (e.g. subject covers) never show up without a hard refresh.
-      const res = await fetch(`${DATA_BASE}${name}.json`, { cache: 'no-cache' });
+      const res = await fetch(`${DATA_BASE}${name}.json${suffix}`, { cache: 'force-cache' });
       if (!res.ok) {
         _promise = null;
         throw new Error(`本地数据加载失败：${name}.json (HTTP ${res.status})`);
