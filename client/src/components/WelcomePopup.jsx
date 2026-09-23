@@ -72,7 +72,7 @@ function WelcomePopup({ onClose, locale = 'zh' }) {
 
             <div className="welcome-qq">
               <a href="https://qm.qq.com/q/2sWbSsCwBu" target="_blank" rel="noopener noreferrer" title={text.qqTitle}>
-                <img src="/assets/qqgroup.png" alt={text.qqAlt} className="welcome-qq-img" />
+                <img src={`${import.meta.env.BASE_URL}assets/qqgroup.png`} alt={text.qqAlt} className="welcome-qq-img" />
               </a>
             </div>
           </div>
