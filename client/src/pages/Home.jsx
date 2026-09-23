@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import '../styles/Home.css';
 import WelcomePopup from '../components/WelcomePopup';
 import { enableBgmAccelAfterBlock, getBgmApiUrl, hasBgmAccelUrl } from '../utils/bgmApi.js';
+import { LOCAL_DATA_ENABLED } from '../data/localData.js';
 
 const HOME_TEXT = {
   zh: {
@@ -44,6 +45,8 @@ const Home = ({ locale = 'zh' }) => {
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
 
   useEffect(() => {
+    // 本地数据模式：完全不访问 api.bgm.tv，无需探测加速
+    if (LOCAL_DATA_ENABLED) return;
     // Only probe when accel is available and we are still on the official API
     if (!hasBgmAccelUrl()) return;
     const apiBaseUrl = getBgmApiUrl();

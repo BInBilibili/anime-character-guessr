@@ -1,5 +1,14 @@
 import axios from "axios";
 
+// 纯静态部署（GitHub Pages）没有后端，所有上报接口直接短路，
+// 避免每次猜测都向 http://localhost:3000 发一次注定失败的请求。
+const http = import.meta.env.VITE_DISABLE_BACKEND === 'true'
+  ? {
+      post: async () => ({ data: { count: 0 } }),
+      get: async () => ({ data: { count: 0 } }),
+    }
+  : axios;
+
 const DB_SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
 if (!DB_SERVER_URL) {
@@ -8,7 +17,7 @@ if (!DB_SERVER_URL) {
 
 export async function submitCharacterTags(characterId, tags) {
   try {
-    const response = await axios.post(`${DB_SERVER_URL}/api/character-tags`, {
+    const response = await http.post(`${DB_SERVER_URL}/api/character-tags`, {
       characterId,
       tags,
     });
@@ -20,7 +29,7 @@ export async function submitCharacterTags(characterId, tags) {
 
 export async function proposeCustomTags(characterId, tags) {
   try {
-    const response = await axios.post(`${DB_SERVER_URL}/api/propose-tags`, {
+    const response = await http.post(`${DB_SERVER_URL}/api/propose-tags`, {
       characterId,
       tags,
     });
@@ -32,7 +41,7 @@ export async function proposeCustomTags(characterId, tags) {
 
 export async function submitFeedbackTags(characterId, upvotes, downvotes) {
   try {
-    const response = await axios.post(`${DB_SERVER_URL}/api/feedback-tags`, {
+    const response = await http.post(`${DB_SERVER_URL}/api/feedback-tags`, {
       characterId,
       upvotes: Array.from(upvotes),
       downvotes: Array.from(downvotes),
@@ -45,7 +54,7 @@ export async function submitFeedbackTags(characterId, upvotes, downvotes) {
 
 export async function submitAnswerCharacterCount(characterId, characterName) {
   try {
-    const response = await axios.post(`${DB_SERVER_URL}/api/answer-character-count`, {
+    const response = await http.post(`${DB_SERVER_URL}/api/answer-character-count`, {
       characterId,
       characterName,
     });
@@ -57,7 +66,7 @@ export async function submitAnswerCharacterCount(characterId, characterName) {
 
 export async function getCharacterUsage(characterId) {
   try {
-    const response = await axios.get(`${DB_SERVER_URL}/api/character-usage/${characterId}`);
+    const response = await http.get(`${DB_SERVER_URL}/api/character-usage/${characterId}`);
     return response.data.count;
   } catch (error) {
     console.error('Error fetching character usage:', error);
@@ -67,7 +76,7 @@ export async function getCharacterUsage(characterId) {
 
 export async function submitGuessCharacterCount(characterId, characterName) {
   try {
-    const response = await axios.post(`${DB_SERVER_URL}/api/guess-character-count`, {
+    const response = await http.post(`${DB_SERVER_URL}/api/guess-character-count`, {
       characterId,
       characterName,
     });

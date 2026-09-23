@@ -3,8 +3,55 @@ import { idToTags } from '../data/id_tags.js';
 import { subjectsWithExtraTags } from '../data/extra_tag_subjects.js';
 import { fixImageUrl } from './imageUrl.js';
 import { getBgmApiUrl } from './bgmApi.js';
+import {
+  LOCAL_DATA_ENABLED,
+  loadLocalData,
+  localChar,
+  localCharSubjects,
+  localCharPersons,
+  localSubject,
+  localSubjectTags,
+  localSubjectChars,
+  localImageUrl,
+  searchLocalCharacters,
+  searchLocalSubjects,
+  pickRandomSubjectId,
+} from '../data/localData.js';
+
+/** 本地模式：用仓库内数据还原 /v0/subjects/{id} 的语义（日期未到 / locked 返回 null，与原逻辑一致） */
+function getLocalSubjectDetails(subjectId) {
+  const s = localSubject(subjectId);
+  if (!s) return null;
+  const [name, nameCn, date, type, locked, score, total, metaTags] = s;
+  if (locked) return null;
+  const airDate = date || null;
+  if (airDate) {
+    const t = new Date(airDate);
+    if (!Number.isNaN(t.getTime()) && t > new Date()) return null;
+  }
+  const year = airDate ? parseInt(airDate.split('-')[0], 10) : null;
+  const raw_tags = localSubjectTags(subjectId).map(([n, c]) => ({ name: n, count: c }));
+  const tags = [];
+  if (type === 2 || type === 4) {
+    raw_tags.filter(tag => !tag.name.includes('20')).forEach(tag => tags.push({ [tag.name]: tag.count }));
+  }
+  return {
+    name,
+    nameCn: nameCn || name,
+    year,
+    tags,
+    raw_tags,
+    meta_tags: metaTags || [],
+    rating: score || 0,
+    rating_count: total || 0,
+  };
+}
 
 async function getSubjectDetails(subjectId) {
+  if (LOCAL_DATA_ENABLED) {
+    await loadLocalData();
+    return getLocalSubjectDetails(subjectId);
+  }
   try {
     const response = await axios.get(`${getBgmApiUrl()}/v0/subjects/${subjectId}`);
 
@@ -70,12 +117,22 @@ async function getSubjectDetails(subjectId) {
 
 async function getCharacterAppearances(characterId, gameSettings) {
   try {
-    const [subjectsResponse, personsResponse] = await Promise.all([
-      axios.get(`${getBgmApiUrl()}/v0/characters/${characterId}/subjects`),
-      axios.get(`${getBgmApiUrl()}/v0/characters/${characterId}/persons`)
-    ]);
+    let subjectsData, personsData;
+    if (LOCAL_DATA_ENABLED) {
+      // 本地模式：格式对齐在线 API（subjects: staff/type；persons: name/subject_type）
+      await loadLocalData();
+      subjectsData = localCharSubjects(characterId).map(([id, staff, type]) => ({ id, staff, type }));
+      personsData = localCharPersons(characterId).map(name => ({ name, subject_type: 2 }));
+    } else {
+      const [subjectsResponse, personsResponse] = await Promise.all([
+        axios.get(`${getBgmApiUrl()}/v0/characters/${characterId}/subjects`),
+        axios.get(`${getBgmApiUrl()}/v0/characters/${characterId}/persons`)
+      ]);
+      subjectsData = subjectsData;
+      personsData = personsData;
+    }
 
-    if (!subjectsResponse.data || !subjectsResponse.data.length) {
+    if (!subjectsData || !subjectsData.length) {
       return {
         appearances: [],
         appearanceIds: [],
@@ -100,12 +157,12 @@ async function getCharacterAppearances(characterId, gameSettings) {
     else if (gameSettings.metaTags.includes('全部')) {
       bigTypes = [1, 2, 4, 6];
     }
-    filteredAppearances = subjectsResponse.data.filter(appearance => 
+    filteredAppearances = subjectsData.filter(appearance => 
       (appearance.staff === '主角' || appearance.staff === '配角')
       && bigTypes.includes(appearance.type)
     );
     if (filteredAppearances.length === 0) {
-      filteredAppearances = subjectsResponse.data.filter(appearance => 
+      filteredAppearances = subjectsData.filter(appearance => 
         (appearance.staff === '主角' || appearance.staff === '配角')
       );
     }
@@ -285,7 +342,7 @@ async function getCharacterAppearances(characterId, gameSettings) {
       });
 
     // 添加需要额外标签的条目
-    for (const appearance of subjectsResponse.data) {
+    for (const appearance of subjectsData) {
       if (
         (appearance.staff === '主角' || appearance.staff === '配角')
         && subjectsWithExtraTags.has(appearance.id)
@@ -300,8 +357,8 @@ async function getCharacterAppearances(characterId, gameSettings) {
       allMetaTags.add('展开');
       animeVAs.add('展开');
     }
-    else if (personsResponse.data && personsResponse.data.length) {
-      const persons = personsResponse.data.filter(person => person.subject_type === 2 || person.subject_type === 4);
+    else if (personsData && personsData.length) {
+      const persons = personsData.filter(person => person.subject_type === 2 || person.subject_type === 4);
       if (persons.length > 0) {
         persons.forEach(person => {
           allMetaTags.add(`${person.name}`);
@@ -341,6 +398,23 @@ async function getCharacterAppearances(characterId, gameSettings) {
 }
 
 async function getCharacterDetails(characterId) {
+  if (LOCAL_DATA_ENABLED) {
+    await loadLocalData();
+    const c = localChar(characterId);
+    if (!c) {
+      throw new Error(`本地数据缺失角色：${characterId}`);
+    }
+    return {
+      name: c[0],
+      nameCn: c[1],
+      nameEn: c[2],
+      gender: c[3],
+      image: localImageUrl(c[5]),
+      imageGrid: localImageUrl(c[5]),
+      summary: c[6],
+      popularity: c[4],
+    };
+  }
   try {
     const response = await axios.get(`${getBgmApiUrl()}/v0/characters/${characterId}`);
     if (!response.data) {
@@ -387,6 +461,24 @@ async function getCharacterDetails(characterId) {
 }
 
 async function getCharactersBySubjectId(subjectId) {
+  if (LOCAL_DATA_ENABLED) {
+    await loadLocalData();
+    const rows = localSubjectChars(subjectId);
+    if (!rows.length) {
+      console.error('作品没有角色：' + subjectId);
+      throw new Error('选到了作品，但数据库中没有角色，调整范围或重试');
+    }
+    return rows.map(([cid, relation]) => {
+      const c = localChar(cid);
+      const img = c ? localImageUrl(c[5]) : '';
+      return {
+        id: cid,
+        relation,
+        name: c ? c[0] : '',
+        images: { grid: img, medium: img },
+      };
+    });
+  }
   try {
     const response = await axios.get(`${getBgmApiUrl()}/v0/subjects/${subjectId}/characters`);
 
@@ -410,7 +502,75 @@ async function getCharactersBySubjectId(subjectId) {
   }
 }
 
+/**
+ * 本地模式：从仓库内作品池随机选题再挑角色。
+ * 复刻在线逻辑的语义 —— 类型/年份筛选 + 按热度 topN + mainCharacterOnly + addedSubjects。
+ * （自定义目录 useIndex 需要 Bangumi index 接口，本地不可用，会落回默认范围）
+ */
+async function getRandomCharacterLocal(gameSettings) {
+  await loadLocalData();
+
+  const metaTags = gameSettings.metaTags || [];
+  const primaryTag = metaTags[0];
+  let types = [2];
+  if (primaryTag === '书籍') types = [1];
+  else if (primaryTag === '游戏' || primaryTag === 'Galgame') types = [4];
+  else if (primaryTag === '三次元') types = [6];
+  else if (primaryTag === '全部') types = [1, 2, 4, 6];
+
+  const startYear = gameSettings.startYear;
+  const endYear = Math.min(gameSettings.endYear, new Date().getFullYear());
+  const topN = Math.min(gameSettings.topNSubjects || 50, 1000);
+  const added = Array.isArray(gameSettings.addedSubjects) ? gameSettings.addedSubjects : [];
+
+  for (let attempt = 0; attempt < 40; attempt++) {
+    let subjectId = null;
+
+    if (added.length && Math.random() < added.length / (added.length + topN)) {
+      const pick = added[Math.floor(Math.random() * added.length)];
+      subjectId = String(pick && pick.id ? pick.id : pick);
+    } else if (gameSettings.useSubjectPerYear) {
+      const span = Math.max(1, endYear - startYear + 1);
+      const y = startYear + Math.floor(Math.random() * span);
+      subjectId = pickRandomSubjectId({ types, startYear: y, endYear: y, topN });
+    } else {
+      subjectId = pickRandomSubjectId({ types, startYear, endYear, topN });
+    }
+
+    if (!subjectId) continue;
+
+    let characters;
+    try {
+      characters = await getCharactersBySubjectId(subjectId);
+    } catch (e) {
+      continue; // 该作品在本地没有可用角色，换一个
+    }
+
+    const filteredCharacters = gameSettings.mainCharacterOnly
+      ? characters.filter(character => character.relation === '主角')
+      : characters.filter(character => character.relation === '主角' || character.relation === '配角')
+          .slice(0, gameSettings.characterNum);
+
+    if (filteredCharacters.length === 0) continue;
+
+    const selectedCharacter = filteredCharacters[Math.floor(Math.random() * filteredCharacters.length)];
+    const characterDetails = await getCharacterDetails(selectedCharacter.id);
+    const appearances = await getCharacterAppearances(selectedCharacter.id, gameSettings);
+
+    return {
+      ...selectedCharacter,
+      ...characterDetails,
+      ...appearances,
+    };
+  }
+
+  throw new Error('选不到作品，请重试或更改范围');
+}
+
 async function getRandomCharacter(gameSettings) {
+  if (LOCAL_DATA_ENABLED) {
+    return getRandomCharacterLocal(gameSettings);
+  }
   try {
     let subject;
     let total;
@@ -827,6 +987,30 @@ function getPossibleSubjectTypes(gameSettings) {
 }
 
 async function searchSubjects(keyword, gameSettings = null) {
+  if (LOCAL_DATA_ENABLED) {
+    await loadLocalData();
+    const types = getPossibleSubjectTypes(gameSettings);
+    const typeLabelMap = { 1: '书籍', 2: '动漫', 4: '游戏', 6: '三次元' };
+    const formatted = searchLocalSubjects(keyword, 50).map(
+      ([sid, name, nameCn, date, type]) => ({
+        id: Number(sid),
+        name,
+        name_cn: nameCn,
+        image: '', // 本地模式不含作品封面（角色图才是本地化的重点）
+        date,
+        type: typeLabelMap[type] || '动漫',
+        rawType: type,
+      })
+    );
+    if (types && types.length > 0) {
+      formatted.sort((a, b) => {
+        const aMatch = types.includes(a.rawType) ? 0 : 1;
+        const bMatch = types.includes(b.rawType) ? 0 : 1;
+        return aMatch - bMatch;
+      });
+    }
+    return formatted;
+  }
   try {
     const types = getPossibleSubjectTypes(gameSettings);
 

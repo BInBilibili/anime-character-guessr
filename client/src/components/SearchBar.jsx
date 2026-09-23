@@ -5,6 +5,13 @@ import { searchSubjects, getCharactersBySubjectId, getCharacterDetails } from '.
 import '../styles/search.css';
 import { submitGuessCharacterCount } from '../utils/db';
 import { getBgmApiUrl } from '../utils/bgmApi.js';
+import {
+  LOCAL_DATA_ENABLED,
+  loadLocalData,
+  searchLocalCharacters,
+  localChar,
+  localImageUrl,
+} from '../data/localData.js';
 
 const SEARCH_TEXT = {
   zh: {
@@ -244,6 +251,27 @@ function SearchBar({ onCharacterSelect, isGuessing, gameEnd, subjectSearch, game
     
     loadingState(true);
     try {
+      let newResults;
+      let more;
+
+      if (LOCAL_DATA_ENABLED) {
+        await loadLocalData();
+        const local = searchLocalCharacters(searchQuery.trim(), currentLimit, currentOffset);
+        newResults = local.rows.map(row => {
+          const [cid, name, nameCn, nameEn] = row;
+          const c = localChar(cid);
+          return {
+            id: cid,
+            image: c ? localImageUrl(c[5]) : '',
+            name,
+            nameCn,
+            nameEn,
+            gender: c ? c[3] : '?',
+            popularity: c ? c[4] : 0,
+          };
+        });
+        more = local.hasMore;
+      } else {
       const response = await axios.post(
         `${getBgmApiUrl()}/v0/search/characters?limit=${currentLimit}&offset=${currentOffset}`,
         {
@@ -251,7 +279,7 @@ function SearchBar({ onCharacterSelect, isGuessing, gameEnd, subjectSearch, game
         }
       );
       
-      const newResults = response.data.data.map(character => ({
+      newResults = response.data.data.map(character => ({
         id: character.id,
         image: fixImageUrl(character.images?.grid || null),
         name: character.name,
@@ -274,6 +302,8 @@ function SearchBar({ onCharacterSelect, isGuessing, gameEnd, subjectSearch, game
         gender: character.gender || '?',
         popularity: character.stat.collects+character.stat.comments
       }));
+        more = newResults.length === currentLimit;
+      }
 
       if (reset) {
         setSearchResults(newResults);
@@ -283,7 +313,7 @@ function SearchBar({ onCharacterSelect, isGuessing, gameEnd, subjectSearch, game
         setOffset(currentOffset + MORE_LIMIT);
       }
       
-      setHasMore(newResults.length === currentLimit);
+      setHasMore(more);
     } catch (error) {
       console.error('Search failed:', error);
       if (reset) {

@@ -37,14 +37,14 @@ function ModifiedTagDisplay({ guessCharacter, answerCharacter, locale = 'zh' }) 
         let answerData = null;
         for (const subjectId of guessCharacter.appearanceIds) {
           if (subjectsWithExtraTags.has(subjectId)) {
-            const response = await axios.get(`/data/extra_tags/${subjectId}.json`);
+            const response = await axios.get(`${import.meta.env.BASE_URL}data/extra_tags/${subjectId}.json`);
             guessData = response.data[guessCharacter.id];
             break;
           }
         }
         for (const subjectId of answerCharacter.appearanceIds) {
           if (subjectsWithExtraTags.has(subjectId)) {
-            const response = await axios.get(`/data/extra_tags/${subjectId}.json`);
+            const response = await axios.get(`${import.meta.env.BASE_URL}data/extra_tags/${subjectId}.json`);
             answerData = response.data[answerCharacter.id];
             break;
           }
