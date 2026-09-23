@@ -45,7 +45,7 @@ function SocialLinks({ onSettingsClick, onHelpClick, onFeedbackClick, showFeedba
       )}
 
       <a href="https://bangumi.tv/user/725027" target="_blank" rel="noopener noreferrer" className="social-link">
-        <img src="https://avatars.githubusercontent.com/u/7521082?s=200&v=4" alt="Bangumi" className="bangumi-icon" />
+        <img src={`${import.meta.env.BASE_URL}assets/bangumi-icon.png`} alt="Bangumi" className="bangumi-icon" />
       </a>
       <a href="https://github.com/kennylimz/anime-character-guessr" target="_blank" rel="noopener noreferrer" className="social-link">
         <i className="fab fa-github"></i>
