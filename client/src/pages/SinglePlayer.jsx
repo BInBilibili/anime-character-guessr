@@ -90,7 +90,7 @@ function SinglePlayer() {
     const initializeGame = async () => {
       setInitFailed(false);
       try {
-        if (gameSettings.addedSubjects.length > 0) {
+        if (import.meta.env.VITE_DISABLE_BACKEND !== 'true' && gameSettings.addedSubjects.length > 0) {
           await axios.post(import.meta.env.VITE_SERVER_URL + '/api/subject-added', {
             addedSubjects: gameSettings.addedSubjects
           });
@@ -338,7 +338,7 @@ function SinglePlayer() {
       setHints([]);
 
       try {
-        if (gameSettings.addedSubjects.length > 0) {
+        if (import.meta.env.VITE_DISABLE_BACKEND !== 'true' && gameSettings.addedSubjects.length > 0) {
           await axios.post(import.meta.env.VITE_SERVER_URL + '/api/subject-added', {
             addedSubjects: gameSettings.addedSubjects
           });

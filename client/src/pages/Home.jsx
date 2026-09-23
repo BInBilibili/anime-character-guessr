@@ -120,10 +120,13 @@ const Home = ({ locale = 'zh' }) => {
         .catch(error => console.error('Error fetching room count:', error));
     };
 
-    // initial fetch
-    fetchRoomCount();
-    // refresh every 5 seconds
-    const intervalId = setInterval(fetchRoomCount, 5000);
+    // initial fetch (skipped on static-only deployments where no game server exists)
+    let intervalId = null;
+    if (import.meta.env.VITE_DISABLE_BACKEND !== 'true') {
+      fetchRoomCount();
+      // refresh every 5 seconds
+      intervalId = setInterval(fetchRoomCount, 5000);
+    }
 
     if (!isEnglish && !sessionStorage.getItem('hasSeenWelcomePopup')) {
       sessionStorage.setItem('hasSeenWelcomePopup', '1');

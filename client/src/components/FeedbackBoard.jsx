@@ -45,7 +45,9 @@ const FeedbackBoard = ({ defaultExpanded = false, locale = 'zh', onAddFeedbackCl
       }
     };
     
-    fetchFeedbacks();
+    if (import.meta.env.VITE_DISABLE_BACKEND !== 'true') {
+      fetchFeedbacks();
+    }
   }, []);
 
   const toggleExpand = () => {
