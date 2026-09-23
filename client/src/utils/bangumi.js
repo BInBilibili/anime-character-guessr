@@ -17,6 +17,8 @@ import {
   searchLocalCharacters,
   searchLocalSubjects,
   pickRandomSubjectId,
+  localIndex,
+  localIndexPool,
 } from '../data/localData.js';
 
 /** 本地模式：用仓库内数据还原 /v0/subjects/{id} 的语义（日期未到 / locked 返回 null，与原逻辑一致） */
@@ -506,7 +508,9 @@ async function getCharactersBySubjectId(subjectId) {
 /**
  * 本地模式：从仓库内作品池随机选题再挑角色。
  * 复刻在线逻辑的语义 —— 类型/年份筛选 + 按热度 topN + mainCharacterOnly + addedSubjects。
- * （自定义目录 useIndex 需要 Bangumi index 接口，本地不可用，会落回默认范围）
+ * 「使用目录」（useIndex）：只从该目录的作品里抽，不做类型/年份过滤
+ * （与在线 index 分支一致）。预设用到的 4 个目录已随仓库打包，离线可用；
+ * 其它目录会尝试在线取一次作品 id 列表，取不到则明确报错，不再静默随机。
  */
 async function getRandomCharacterLocal(gameSettings) {
   await loadLocalData();
@@ -524,12 +528,40 @@ async function getRandomCharacterLocal(gameSettings) {
   const topN = Math.min(gameSettings.topNSubjects || 50, 1000);
   const added = Array.isArray(gameSettings.addedSubjects) ? gameSettings.addedSubjects : [];
 
+  // ---------- 使用目录 ----------
+  let indexPool = null;
+  if (gameSettings.useIndex && gameSettings.indexId) {
+    indexPool = localIndexPool(gameSettings.indexId);
+    if (!indexPool) {
+      // 只有预设用到的目录是内置的；其它目录回退到在线接口取一次 id 列表
+      try {
+        const res = await axios.get(
+          `${getBgmApiUrl()}/v0/indices/${gameSettings.indexId}/subjects?limit=100&offset=0`
+        );
+        const rows = (res && res.data && res.data.data) || [];
+        indexPool = localIndexPool(gameSettings.indexId, rows.map(r => String(r.id)));
+      } catch (e) {
+        indexPool = null;
+      }
+    }
+    if (!indexPool || !indexPool.length) {
+      throw new Error(
+        `目录 ${gameSettings.indexId} 不在本地数据里，也取不到它的作品列表。` +
+        '本地只内置了预设用到的目录（木柜子痴 / 二游高手 / 米哈游高手 / MOBA糕手）。'
+      );
+    }
+  }
+
+  const totalWeight = (indexPool ? indexPool.length : 0) + added.length;
+
   for (let attempt = 0; attempt < 40; attempt++) {
     let subjectId = null;
 
-    if (added.length && Math.random() < added.length / (added.length + topN)) {
+    if (totalWeight > 0 && Math.random() < added.length / totalWeight) {
       const pick = added[Math.floor(Math.random() * added.length)];
       subjectId = String(pick && pick.id ? pick.id : pick);
+    } else if (indexPool) {
+      subjectId = indexPool[Math.floor(Math.random() * indexPool.length)];
     } else if (gameSettings.useSubjectPerYear) {
       const span = Math.max(1, endYear - startYear + 1);
       const y = startYear + Math.floor(Math.random() * span);
@@ -939,6 +971,16 @@ function generateFeedback(guess, answerCharacter, gameSettings) {
 }
 
 async function getIndexInfo(indexId) {
+  // 本地模式：内置的预设目录直接读仓库数据（离线可用，也不依赖 api.bgm.tv）
+  if (LOCAL_DATA_ENABLED) {
+    try {
+      await loadLocalData();
+      const li = localIndex(indexId);
+      if (li) return { title: li.title, total: li.sids.length };
+    } catch (e) {
+      // 落回在线接口
+    }
+  }
   try {
     const response = await axios.get(`${getBgmApiUrl()}/v0/indices/${indexId}`);
     

@@ -15,6 +15,8 @@
  *   subj_chars.json { sid: [[cid, "主角"|"配角"], ...] }
  *   search.json     [ [cid, name, nameCn, nameEn, aliases[]], ... ]  按 popularity 降序
  *                   （无 popularity 字段；顺序本身即热度序）
+ *   indices.json    { indexId: { title, sids: [subjectId, ...] } }
+ *                   「使用目录」用的 Bangumi 收藏目录；预设用到的目录随仓库打包，离线可用
  */
 
 const BASE = import.meta.env.BASE_URL || '/';
@@ -23,7 +25,7 @@ const DATA_BASE = `${BASE}gamedata/`;
 /** 设 VITE_LOCAL_DATA=false 可整体回退到在线 Bangumi API */
 export const LOCAL_DATA_ENABLED = import.meta.env.VITE_LOCAL_DATA !== 'false';
 
-const FILES = ['chars', 'char_subj', 'char_pers', 'subjects', 'subj_tags', 'subj_chars', 'search'];
+const FILES = ['chars', 'char_subj', 'char_pers', 'subjects', 'subj_tags', 'subj_chars', 'search', 'indices'];
 
 let _data = null;
 let _promise = null;
@@ -163,6 +165,46 @@ export function pickRandomSubjectId({ types = [2], startYear = 1970, endYear = 2
   if (!ids.length) return null;
   const n = Math.max(1, Math.min(topN, ids.length));
   return ids[Math.floor(Math.random() * n)];
+}
+
+// ---------- 目录（Bangumi index） ----------
+/**
+ * 仓库内置的目录数据。
+ * @param {string|number} indexId
+ * @returns {{title:string, sids:string[]}|null} 未内置时返回 null
+ */
+export function localIndex(indexId) {
+  if (indexId === null || indexId === undefined || indexId === '') return null;
+  const d = D();
+  const e = d.indices && d.indices[String(indexId)];
+  if (!e) return null;
+  return { title: e.title || '', sids: (e.sids || []).map(String) };
+}
+
+/**
+ * 「使用目录」的作品池：目录内所有本地能玩的作品（有角色名单）。
+ * 与在线 index 分支语义一致 —— 目录选题不做类型/年份过滤，只在目录内均匀抽。
+ * @param {string|number} indexId
+ * @param {string[]} [sidsOverride] 目录未内置时传入在线取到的 id 列表
+ * @returns {string[]|null} null = 这个目录不在本地数据里
+ */
+export function localIndexPool(indexId, sidsOverride) {
+  let sids = sidsOverride;
+  if (!sids) {
+    const entry = localIndex(indexId);
+    if (!entry) return null;
+    sids = entry.sids;
+  }
+  const d = D();
+  const ids = [];
+  for (let i = 0; i < sids.length; i++) {
+    const sid = String(sids[i]);
+    if (!d.subjects[sid]) continue;
+    const roster = d.subj_chars[sid];
+    if (!roster || !roster.length) continue;
+    ids.push(sid);
+  }
+  return ids;
 }
 
 // ---------- 搜索 ----------
