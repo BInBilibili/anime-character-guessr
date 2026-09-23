@@ -22,7 +22,7 @@ export function toLocalCharPath(url) {
   const base = file.replace(/\.[a-z0-9]+$/i, '');
   if (!base) return null;
   const raw = base.length >= 7 ? base.slice(-5, -3) : base.slice(0, 2);
-  const shard = raw.replace(/[^0-9a-zA-Z]/g, '_').padEnd(2, '_').slice(0, 2);
+  const shard = raw.replace(/[^0-9a-zA-Z]/g, '_').padEnd(2, '_').slice(0, 2).toLowerCase();
   return `chars/${shard}/${base}.webp`;
 }
 

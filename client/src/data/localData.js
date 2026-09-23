@@ -90,7 +90,13 @@ export function localSubjectChars(id) {
 // ---------- 图片 ----------
 /** img 形如 "z1/2_crt_z1V9r"（chars/ 下的相对路径，无扩展名） */
 export function localImageUrl(img) {
-  return img ? `${BASE}chars/${img}.webp` : '';
+  if (!img) return '';
+  // shard 目录统一小写：git 在 Windows 上只记录了首次出现的大小写，
+  // 而 GitHub Pages 是大小写敏感的 Linux，混用会导致 404。
+  // basename 必须保持原样（对应 Bangumi 的文件名）。
+  const i = img.indexOf('/');
+  const path = i === -1 ? img : img.slice(0, i).toLowerCase() + img.slice(i);
+  return `${BASE}chars/${path}.webp`;
 }
 
 // ---------- 随机选题 ----------
