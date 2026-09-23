@@ -8,8 +8,6 @@ import { LOCAL_DATA_ENABLED } from '../data/localData.js';
 const HOME_TEXT = {
   zh: {
     singleplayer: '单人',
-    multiplayer: '多人',
-    roomCount: '当前房间数',
     showAnnouncements: '公告/反馈公开',
     status: '服务状态',
     howToPlay: '玩法简介',
@@ -26,8 +24,6 @@ const HOME_TEXT = {
   },
   en: {
     singleplayer: 'Singleplayer',
-    multiplayer: 'Multiplayer',
-    roomCount: 'Active rooms',
     showAnnouncements: 'Announcements/Feedback',
     dataSource: 'Data from',
     bangumi: 'Bangumi',
@@ -41,7 +37,8 @@ const HOME_TEXT = {
 const Home = ({ locale = 'zh' }) => {
   const isEnglish = locale === 'en';
   const text = HOME_TEXT[locale] || HOME_TEXT.zh;
-  const [roomCount, setRoomCount] = useState(0);
+  // 欢迎/公告弹窗不再自动弹出（本地化版本无需 QQ群 / Issue 引导）。
+  // 需要时仍可从底部「公告」按钮打开。
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
 
   useEffect(() => {
@@ -109,33 +106,7 @@ const Home = ({ locale = 'zh' }) => {
     };
   }, []);
 
-  useEffect(() => {
-    const serverUrl = import.meta.env.VITE_SERVER_URL || '';
-    let mounted = true;
-
-    const fetchRoomCount = () => {
-      fetch(`${serverUrl}/api/room-count`)
-        .then(response => {
-          if (!response.ok) throw new Error('Failed to fetch');
-          return response.json();
-        })
-        .then(data => { if (mounted) setRoomCount(data.count); })
-        .catch(error => console.error('Error fetching room count:', error));
-    };
-
-    // initial fetch (skipped on static-only deployments where no game server exists)
-    let intervalId = null;
-    if (import.meta.env.VITE_DISABLE_BACKEND !== 'true') {
-      fetchRoomCount();
-      // refresh every 5 seconds
-      intervalId = setInterval(fetchRoomCount, 5000);
-    }
-
-    // 欢迎/公告弹窗不再自动弹出（本地化版本无需 QQ群 / Issue 引导）。
-    // 需要时仍可从底部「公告」按钮打开。
-
-    return () => { mounted = false; clearInterval(intervalId); };
-  }, [isEnglish]);
+  // 房间数轮询已移除：多人联机下线，静态部署没有游戏服务器。
 
   const handleCloseWelcomePopup = () => {
     setShowWelcomePopup(false);
@@ -153,10 +124,6 @@ const Home = ({ locale = 'zh' }) => {
           <div className="game-modes game-modes-en">
             <Link to="/singleplayer?lang=en" className="mode-button">
               <h2>{text.singleplayer}</h2>
-            </Link>
-            <Link to="/multiplayer?lang=en" className="mode-button">
-              <h2>{text.multiplayer}</h2>
-              <small>{text.roomCount}: {roomCount}</small>
             </Link>
           </div>
           <p className="home-data-source">
@@ -186,10 +153,6 @@ const Home = ({ locale = 'zh' }) => {
       <div className="game-modes">
         <Link to="/singleplayer" className="mode-button">
           <h2>{text.singleplayer}</h2>
-        </Link>
-        <Link to="/multiplayer" className="mode-button">
-          <h2>{text.multiplayer}</h2>
-          <small>{text.roomCount}: {roomCount}</small>
         </Link>
       </div>
       </div>

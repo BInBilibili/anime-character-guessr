@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import SinglePlayer from './pages/SinglePlayer';
-import Multiplayer from './pages/Multiplayer';
 
 const PAGE_TITLES = {
   zh: '二刺猿笑传之猜猜呗',
@@ -22,8 +21,9 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/en" element={<Home locale="en" />} />
       <Route path="/singleplayer" element={<SinglePlayer />} />
-      <Route path="/multiplayer" element={<Multiplayer />} />
-      <Route path="/multiplayer/:roomId" element={<Multiplayer />} />
+      {/* 多人联机依赖自建游戏服务器，静态部署（GitHub Pages）不含后端，故整体下线并重定向回首页 */}
+      <Route path="/multiplayer" element={<Navigate to="/" replace />} />
+      <Route path="/multiplayer/:roomId" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
