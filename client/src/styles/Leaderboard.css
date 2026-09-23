@@ -167,6 +167,7 @@
   height: 48px;
   border-radius: 8px;
   object-fit: cover;
+  object-position: center top;
   margin: 0 12px;
   background: #f1f5f9;
 }

@@ -114,6 +114,9 @@
   height: 40px;
   border-radius: 4px;
   object-fit: cover;
+  /* Bangumi grid images are square and head-framed; our local WebP keeps the
+     original portrait crop, so anchor the 40x40 crop to the top = head. */
+  object-position: center top;
 }
 
 .result-character-icon.no-image {

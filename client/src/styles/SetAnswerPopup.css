@@ -51,6 +51,9 @@
   border-radius: 4px;
   margin-right: 15px;
   flex-shrink: 0;
+  /* without object-fit the portrait local image was squashed into 60x60 */
+  object-fit: cover;
+  object-position: center top;
 }
 
 .character-info {

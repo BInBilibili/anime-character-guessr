@@ -105,6 +105,7 @@
   height: 50px;
   border-radius: 6px;
   object-fit: cover;
+  object-position: center top;
   display: block;
   margin: 0 auto;
 }
