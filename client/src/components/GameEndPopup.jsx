@@ -2,6 +2,7 @@ import '../styles/popups.css';
 import subaruIcon from '/assets/subaru.jpg';
 import { useState } from 'react';
 import TagContributionPopup from './TagContributionPopup';
+import DailyShareButton from './DailyShareButton';
 import { idToTags } from '../data/id_tags';
 
 function renderSummaryWithTags(summary, text) {
@@ -126,7 +127,7 @@ const GAME_END_TEXT = {
   }
 };
 
-function GameEndPopup({ result, answer, onClose, locale = 'zh' }) {
+function GameEndPopup({ result, answer, onClose, locale = 'zh', shareText = '' }) {
   const text = GAME_END_TEXT[locale] || GAME_END_TEXT.zh;
   const [showTagPopup, setShowTagPopup] = useState(false);
 
@@ -231,6 +232,12 @@ function GameEndPopup({ result, answer, onClose, locale = 'zh' }) {
               )}
             </div>
           </div>
+          {/* 每日挑战：结算时直接分享无剧透成绩卡 */}
+          {shareText && (
+            <div className="game-end-share">
+              <DailyShareButton shareText={shareText} locale={locale} />
+            </div>
+          )}
         </div>
       </div>
     </div>

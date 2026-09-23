@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getRandomCharacter, getCharacterAppearances, generateFeedback } from '../utils/bangumi';
 import SearchBar from '../components/SearchBar';
@@ -12,6 +12,15 @@ import Timer from '../components/Timer';
 import FeedbackPopup from '../components/FeedbackPopup';
 import TagContributionPopup from '../components/TagContributionPopup';
 import logCollector from '../utils/logCollector';
+import DailyBar from '../components/DailyBar';
+import {
+  dayIndexOf,
+  dateStringOf,
+  DAILY_SETTINGS,
+  loadDailyProgress,
+  recordDailyResult,
+  dailyShareText,
+} from '../utils/daily';
 import '../styles/game.css';
 import '../styles/SinglePlayer.css';
 import '../styles/social.css';
@@ -39,7 +48,7 @@ const SINGLE_PLAYER_TEXT = {
   }
 };
 
-function SinglePlayer() {
+function SinglePlayer({ daily = false }) {
   const location = useLocation();
   const locale = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'zh';
   const isEnglish = locale === 'en';
@@ -61,7 +70,7 @@ function SinglePlayer() {
   const [showFeedbackPopup, setShowFeedbackPopup] = useState(false);
   const [tagFeedbackCharacter, setTagFeedbackCharacter] = useState(null);
   const [isGameRestarting, setIsGameRestarting] = useState(false); // 防止重复点击"再玩一次"
-  const [gameSettings, setGameSettings] = useLocalStorage('singleplayer-game-settings', {
+  const [storedSettings, setStoredSettings] = useLocalStorage('singleplayer-game-settings', {
     startYear: new Date().getFullYear()-10,
     endYear: new Date().getFullYear(),
     useSubjectPerYear: false,
@@ -81,6 +90,14 @@ function SinglePlayer() {
     subjectTagNum: 4,
     commonTags: true
   });
+  // 每日挑战：答案与设置都由「日期种子 + 冻结常量」决定，完全不读本地保存的设置，
+  // 否则每个人的反馈表会不一样，成绩无法互相比较。
+  const dailyDay = daily ? dayIndexOf() : null;
+  const gameSettings = useMemo(
+    () => (daily ? { ...DAILY_SETTINGS, dailyDayIndex: dailyDay } : storedSettings),
+    [daily, dailyDay, storedSettings]
+  );
+  const [dailyProgress, setDailyProgress] = useState(() => (daily ? loadDailyProgress() : null));
   const [currentGameSettings, setCurrentGameSettings] = useState(gameSettings);
 
   // Initialize game
@@ -170,6 +187,26 @@ function SinglePlayer() {
       logCollector.setAppStateProvider(null);
     };
   }, [finishInit, initFailed, gameEnd, isGuessing, guessesLeft, guesses.length, answerCharacter, currentGameSettings]);
+
+  // 每日挑战：一局结束后写连胜（同一天只记一次，重玩不重复计）
+  useEffect(() => {
+    if (!daily || !gameEnd) return;
+    const won = guesses.some(g => g.isAnswer);
+    setDailyProgress(recordDailyResult({ day: dailyDay, won, attempts: guesses.length }));
+  }, [daily, gameEnd, guesses, dailyDay]);
+
+  // 无剧透成绩卡（只在游戏结束后可分享）
+  const dailyShare = useMemo(() => {
+    if (!daily || !gameEnd) return '';
+    return dailyShareText({
+      day: dailyDay,
+      won: guesses.some(g => g.isAnswer),
+      attempts: guesses.length,
+      rows: guesses,
+      streak: dailyProgress ? dailyProgress.streak : 0,
+      url: typeof window !== 'undefined' ? window.location.href : '',
+    });
+  }, [daily, gameEnd, guesses, dailyDay, dailyProgress]);
 
   const handleCharacterSelect = async (character) => {
     if (isGuessing || !answerCharacter) return;
@@ -312,7 +349,7 @@ function SinglePlayer() {
   };
 
   const handleSettingsChange = (setting, value) => {
-    setGameSettings(prev => ({
+    setStoredSettings(prev => ({
       ...prev,
       [setting]: value
     }));
@@ -436,8 +473,21 @@ function SinglePlayer() {
         onHelpClick={() => setHelpPopup(true)}
         onFeedbackClick={() => setShowFeedbackPopup(true)}
         showFeedbackInline={true}
+        showSettings={!daily}
         locale={locale}
       />
+
+      {daily && (
+        <DailyBar
+          date={dateStringOf(dailyDay)}
+          streak={dailyProgress ? dailyProgress.streak : 0}
+          best={dailyProgress ? dailyProgress.best : 0}
+          playedToday={Boolean(dailyProgress && dailyProgress.day === dailyDay)}
+          gameEnd={gameEnd}
+          shareText={dailyShare}
+          locale={locale}
+        />
+      )}
 
       <div className="search-bar">
         <SearchBar
@@ -503,6 +553,7 @@ function SinglePlayer() {
           result={gameEndPopup.result}
           answer={gameEndPopup.answer}
           onClose={() => setGameEndPopup(null)}
+          shareText={dailyShare}
           locale={locale}
         />
       )}

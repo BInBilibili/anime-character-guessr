@@ -19,9 +19,10 @@
  *                   「使用目录」用的 Bangumi 收藏目录；预设用到的目录随仓库打包，离线可用
  */
 
+import { idToTags } from './id_tags.js';
+
 const BASE = import.meta.env.BASE_URL || '/';
 const DATA_BASE = `${BASE}gamedata/`;
-
 /** 设 VITE_LOCAL_DATA=false 可整体回退到在线 Bangumi API */
 export const LOCAL_DATA_ENABLED = import.meta.env.VITE_LOCAL_DATA !== 'false';
 
@@ -165,6 +166,35 @@ export function pickRandomSubjectId({ types = [2], startYear = 1970, endYear = 2
   if (!ids.length) return null;
   const n = Math.max(1, Math.min(topN, ids.length));
   return ids[Math.floor(Math.random() * n)];
+}
+
+// ---------- 每日挑战 ----------
+let _dailyPoolCache = null;
+
+/**
+ * 每日挑战的候选域。
+ * = id_tags 的 id（判分需要 idToTags 里的标签）∩ 本地有资料且有图（chars）∩ popularity >= minPopularity，
+ * **按 cid 升序返回** —— 顺序稳定是「同一天所有人都抽到同一个角色」的前提。
+ * 域成员只在 gamedata 更新时才会变化（脚本每次只增不减），门槛固定，因此顺序实际是冻结的。
+ *
+ * @param {number} minPopularity 热度门槛；300 约 673 个角色（≈1.8 年不重复）
+ * @returns {number[]}
+ */
+export function dailyPoolIds(minPopularity = 300) {
+  if (_dailyPoolCache && _dailyPoolCache.min === minPopularity) return _dailyPoolCache.ids;
+  const d = D();
+  const ids = [];
+  for (const key in idToTags) {
+    const c = d.chars[key];
+    if (!c) continue;
+    const pop = c[4];
+    if (typeof pop !== 'number' || pop < minPopularity) continue;
+    if (!c[5]) continue; // 必须有本地图片
+    ids.push(Number(key));
+  }
+  ids.sort((a, b) => a - b);
+  _dailyPoolCache = { min: minPopularity, ids };
+  return ids;
 }
 
 // ---------- 目录（Bangumi index） ----------

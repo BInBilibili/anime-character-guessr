@@ -38,3 +38,74 @@
   }
 }
 
+/* ---------- 每日挑战状态条 ---------- */
+.daily-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 52px auto 0;
+  padding: 8px 16px;
+  max-width: 96vw;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(47, 128, 237, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-size: 14px;
+  color: #33415c;
+}
+
+.daily-bar-title {
+  font-weight: 600;
+  color: #2f80ed;
+}
+
+.daily-bar-date {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  color: #5a6b87;
+}
+
+.daily-bar-streak {
+  font-weight: 600;
+  color: #e8890c;
+}
+
+.daily-bar-best,
+.daily-bar-hint {
+  color: #5a6b87;
+  font-size: 13px;
+}
+
+.daily-bar-share {
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: #2f80ed;
+  transition: background 0.18s ease;
+}
+
+.daily-bar-share:hover {
+  background: #1f6fd8;
+}
+
+@media (max-width: 640px) {
+  .daily-bar {
+    margin-top: 8px;
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+}
+
+/* 结算弹窗里的每日挑战分享 */
+.game-end-share {
+  margin-top: 4px;
+  text-align: center;
+}
+
+

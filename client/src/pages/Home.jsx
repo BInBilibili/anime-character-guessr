@@ -4,10 +4,14 @@ import '../styles/Home.css';
 import WelcomePopup from '../components/WelcomePopup';
 import { enableBgmAccelAfterBlock, getBgmApiUrl, hasBgmAccelUrl } from '../utils/bgmApi.js';
 import { LOCAL_DATA_ENABLED } from '../data/localData.js';
+import { dayIndexOf, loadDailyProgress, currentStreak } from '../utils/daily.js';
 
 const HOME_TEXT = {
   zh: {
     singleplayer: '单人',
+    daily: '每日挑战',
+    dailyHint: '全服同一道题',
+    dailyDone: '今日已完成',
     showAnnouncements: '公告/反馈公开',
     status: '服务状态',
     howToPlay: '玩法简介',
@@ -24,6 +28,9 @@ const HOME_TEXT = {
   },
   en: {
     singleplayer: 'Singleplayer',
+    daily: 'Daily Challenge',
+    dailyHint: 'Same puzzle for everyone',
+    dailyDone: 'Done today',
     showAnnouncements: 'Announcements/Feedback',
     dataSource: 'Data from',
     bangumi: 'Bangumi',
@@ -40,6 +47,14 @@ const Home = ({ locale = 'zh' }) => {
   // 欢迎/公告弹窗不再自动弹出（本地化版本无需 QQ群 / Issue 引导）。
   // 需要时仍可从底部「公告」按钮打开。
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [dailyInfo, setDailyInfo] = useState(null);
+
+  // 每日挑战：读本地连胜记录（只写 localStorage，不需要账号）
+  useEffect(() => {
+    const today = dayIndexOf();
+    const p = loadDailyProgress();
+    setDailyInfo({ played: p.day === today, streak: currentStreak(p, today) });
+  }, []);
 
   useEffect(() => {
     // 本地数据模式：完全不访问 api.bgm.tv，无需探测加速
@@ -125,6 +140,13 @@ const Home = ({ locale = 'zh' }) => {
             <Link to="/singleplayer?lang=en" className="mode-button">
               <h2>{text.singleplayer}</h2>
             </Link>
+            <Link to="/daily?lang=en" className="mode-button">
+              <h2>{text.daily}</h2>
+              <small>
+                {dailyInfo && dailyInfo.played ? text.dailyDone : text.dailyHint}
+                {dailyInfo && dailyInfo.streak > 0 ? ` · 🔥${dailyInfo.streak}` : ''}
+              </small>
+            </Link>
           </div>
           <p className="home-data-source">
             {text.dataSource}{' '}
@@ -153,6 +175,13 @@ const Home = ({ locale = 'zh' }) => {
       <div className="game-modes">
         <Link to="/singleplayer" className="mode-button">
           <h2>{text.singleplayer}</h2>
+        </Link>
+        <Link to="/daily" className="mode-button">
+          <h2>{text.daily}</h2>
+          <small>
+            {dailyInfo && dailyInfo.played ? text.dailyDone : text.dailyHint}
+            {dailyInfo && dailyInfo.streak > 0 ? ` · 🔥${dailyInfo.streak}` : ''}
+          </small>
         </Link>
       </div>
       </div>

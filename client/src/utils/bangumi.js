@@ -19,7 +19,9 @@ import {
   pickRandomSubjectId,
   localIndex,
   localIndexPool,
+  dailyPoolIds,
 } from '../data/localData.js';
+import { DAILY_POPULARITY_MIN, pickFromDomain } from './daily.js';
 
 /** 本地模式：用仓库内数据还原 /v0/subjects/{id} 的语义（日期未到 / locked 返回 null，与原逻辑一致） */
 function getLocalSubjectDetails(subjectId) {
@@ -514,6 +516,23 @@ async function getCharactersBySubjectId(subjectId) {
  */
 async function getRandomCharacterLocal(gameSettings) {
   await loadLocalData();
+
+  // ---------- 每日挑战 ----------
+  // 答案完全由 gameSettings.dailyDayIndex（UTC+8 的当天序号）决定：
+  // 候选域稳定 + 种子固定 → 所有人同一天拿到同一个角色，不需要任何预生成答案表。
+  if (gameSettings.dailyDayIndex !== undefined && gameSettings.dailyDayIndex !== null) {
+    const domain = dailyPoolIds(DAILY_POPULARITY_MIN);
+    const cid = pickFromDomain(domain, gameSettings.dailyDayIndex);
+    if (!cid) throw new Error('每日挑战候选域为空，本地数据可能未就绪');
+    const id = cid; // 必须是 number：搜索结果与角色名单里的 id 都是 number（String 会让 id === 永远不成立）
+    const details = await getCharacterDetails(id);
+    const appearances = await getCharacterAppearances(id, gameSettings);
+    return {
+      ...{ id, relation: '主角', name: details.name, images: { grid: details.image, medium: details.image } },
+      ...details,
+      ...appearances,
+    };
+  }
 
   const metaTags = gameSettings.metaTags || [];
   const primaryTag = metaTags[0];

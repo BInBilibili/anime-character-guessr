@@ -21,6 +21,8 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/en" element={<Home locale="en" />} />
       <Route path="/singleplayer" element={<SinglePlayer />} />
+      {/* 每日挑战：复用单人模式的引擎，答案由日期种子决定 */}
+      <Route path="/daily" element={<SinglePlayer daily />} />
       {/* 多人联机依赖自建游戏服务器，静态部署（GitHub Pages）不含后端，故整体下线并重定向回首页 */}
       <Route path="/multiplayer" element={<Navigate to="/" replace />} />
       <Route path="/multiplayer/:roomId" element={<Navigate to="/" replace />} />

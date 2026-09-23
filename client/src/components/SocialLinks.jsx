@@ -13,19 +13,25 @@ const SOCIAL_TEXT = {
   }
 };
 
-function SocialLinks({ onSettingsClick, onHelpClick, onFeedbackClick, showFeedbackInline = false, locale = 'zh' }) {
+function SocialLinks({ onSettingsClick, onHelpClick, onFeedbackClick, showFeedbackInline = false, showSettings = true, locale = 'zh' }) {
   const text = SOCIAL_TEXT[locale] || SOCIAL_TEXT.zh;
-  const homeHref = locale === 'en' ? '/en' : '/';
+  // 子路径部署（GitHub Pages /anime-character-guessr/）下不能用绝对路径 "/en"，
+  // 否则会跳到域名根目录 404。
+  const homeHref = `${import.meta.env.BASE_URL}${locale === 'en' ? 'en' : ''}`;
 
   return (
     <div className="social-links">
-      <div className="difficulty-hint">
-        <span>{text.difficultyHint}</span>
-        <div className="arrow"></div>
-      </div>
-      <button className="social-link settings-button" onClick={onSettingsClick}>
-        <i className="fas fa-cog"></i>
-      </button>
+      {showSettings && (
+        <>
+          <div className="difficulty-hint">
+            <span>{text.difficultyHint}</span>
+            <div className="arrow"></div>
+          </div>
+          <button className="social-link settings-button" onClick={onSettingsClick}>
+            <i className="fas fa-cog"></i>
+          </button>
+        </>
+      )}
       <a href={homeHref} className="social-link" title={text.homeTitle}>
           <i className="fas fa-home"></i>
       </a>
