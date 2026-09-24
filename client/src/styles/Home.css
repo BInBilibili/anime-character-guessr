@@ -211,7 +211,8 @@
 
 .home-footer {
   margin-top: auto;
-  padding-bottom: 1rem;
+  /* 底部留出空间给左下角的「数据快照」角标，避免与其重叠 */
+  padding-bottom: 2.2rem;
   width: 100%;
   text-align: center;
   font-size: 0.9rem;
@@ -282,42 +283,31 @@
     width: min(300px, calc(100vw - 48px));
   }
 
-  .home-notice {
-    padding: 10px 14px;
+  .home-snapshot {
+    left: 12px;
+    bottom: 8px;
+    font-size: 10px;
+    max-width: calc(100vw - 24px);
   }
-
-  .home-notice-list li {
-    font-size: 12px;
-  }
 }
 
-/* 首页必要提醒：数据快照日期 / 数据来源 / 模式范围 / 画质与首屏体积 */
-.home-notice {
-  margin: 18px auto 0 auto;
-  max-width: 460px;
-  padding: 12px 18px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(47, 128, 237, 0.18);
-  border-radius: 12px;
-  color: #4a5568;
-  font-size: 13px;
-  line-height: 1.6;
-  text-align: left;
-}
-
-.home-notice-title {
-  margin: 0 0 6px 0;
-  font-weight: 600;
-  color: #2f80ed;
-}
-
-.home-notice-list {
+/* 数据快照（日期 + 规模）：页面左下角的边缘提示，刻意做得很轻 */
+.home-snapshot {
+  position: absolute;
+  left: 2rem;
+  bottom: 0.75rem;
   margin: 0;
-  padding-left: 18px;
-  list-style: disc;
+  max-width: calc(100% - 4rem);
+  font-size: 11px;
+  line-height: 1.4;
+  color: #98a2b3;
+  letter-spacing: 0.2px;
+  pointer-events: none;
+  user-select: text;
+  z-index: 1;
 }
 
-.home-notice-list li {
-  margin: 2px 0;
+.home-snapshot i {
+  opacity: 0.7;
 }
 
