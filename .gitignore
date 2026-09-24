@@ -77,3 +77,6 @@ out
 .netlify
 
 feedbacks.json
+
+# Localisation pipeline scratch (raw crawl dumps, hundreds of MB)
+tools/localize/_work/

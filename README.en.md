@@ -1,5 +1,14 @@
 [中文](README.md) | [English](README.en.md)
 
+> **This repo is a fully-static, offline fork of [kennylimz/anime-character-guessr](https://github.com/kennylimz/anime-character-guessr).**
+> Gameplay is unchanged, but all game data, character artwork and subject covers are shipped inside the repo —
+> **zero external requests at runtime** — so it runs on plain GitHub Pages.
+>
+> 🎮 Live: **https://binbilibili.github.io/anime-character-guessr/**
+>
+> Data snapshot: **2026-09-23** (Bangumi) · 32,311 characters · 19,636 works · no multiplayer.
+> See the [Chinese README](README.md) for the full change list, data pipeline and known limitations.
+
 ## 📖 Overview
 Anime Character Guessr — have some fun guessing anime characters!
 

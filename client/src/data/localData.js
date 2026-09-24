@@ -17,6 +17,8 @@
  *                   （无 popularity 字段；顺序本身即热度序）
  *   indices.json    { indexId: { title, sids: [subjectId, ...] } }
  *                   「使用目录」用的 Bangumi 收藏目录；预设用到的目录随仓库打包，离线可用
+ *   version.json    { v, cutoff, chars, subjects }
+ *                   数据版本戳 + 快照日期 + 规模；v 变化即换 URL，cutoff 显示在首页
  */
 
 import { idToTags } from './id_tags.js';
@@ -74,6 +76,22 @@ export function loadLocalData(onProgress) {
 function D() {
   if (!_data) throw new Error('本地数据尚未加载，请先 await loadLocalData()');
   return _data;
+}
+
+/**
+ * 读取数据快照元信息：version.json（约 300 B，不触发 31 MB 数据加载）。
+ * 返回 { v, cutoff, chars, subjects }；cutoff 形如 "2026-09-23"，
+ * 由 tools/localize/build_data.py 写入，首页据此显示「数据快照日期」。
+ * 读取失败返回 {}（页面自行降级显示）。
+ */
+export async function fetchDataMeta() {
+  try {
+    const r = await fetch(`${DATA_BASE}version.json`, { cache: 'no-cache' });
+    if (!r.ok) return {};
+    return (await r.json()) || {};
+  } catch {
+    return {};
+  }
 }
 
 // ---------- 角色 ----------

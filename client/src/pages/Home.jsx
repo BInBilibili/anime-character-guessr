@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import '../styles/Home.css';
 import WelcomePopup from '../components/WelcomePopup';
 import { enableBgmAccelAfterBlock, getBgmApiUrl, hasBgmAccelUrl } from '../utils/bgmApi.js';
-import { LOCAL_DATA_ENABLED } from '../data/localData.js';
+import { LOCAL_DATA_ENABLED, fetchDataMeta } from '../data/localData.js';
 import { dayIndexOf, loadDailyProgress, currentStreak } from '../utils/daily.js';
 
 const HOME_TEXT = {
@@ -24,7 +24,14 @@ const HOME_TEXT = {
     friendLinks: '其它二刺猿小游戏：',
     languageLabel: '语言',
     chinese: '中文',
-    english: 'English'
+    english: 'English',
+    noticeTitle: '数据快照',
+    noticeData: '全部立绘、作品封面与游戏数据均来自本仓库，运行时不请求任何外部接口。',
+    noticeModes: '当前仅提供「单人」与「每日挑战」，多人联机未部署。',
+    noticeImages: '立绘取自 Bangumi 并压缩为宽 320px 的 WebP，画质与原站略有差异。',
+    noticeFirstLoad: '首次进入需下载约 12 MB 数据，之后走浏览器缓存，不再重复下载。',
+    noticeChars: '角色',
+    noticeSubjects: '作品'
   },
   en: {
     singleplayer: 'Singleplayer',
@@ -37,7 +44,14 @@ const HOME_TEXT = {
     tagTranslationNote: 'Some parts are not translated. Please use the translation feature of your browser.',
     languageLabel: 'Language',
     chinese: '中文',
-    english: 'English'
+    english: 'English',
+    noticeTitle: 'Data snapshot',
+    noticeData: 'All artwork, covers and game data are served from this repository — no external API calls at runtime.',
+    noticeModes: 'Only Singleplayer and Daily Challenge are available; there is no multiplayer.',
+    noticeImages: 'Artwork comes from Bangumi, recompressed to 320px-wide WebP, so it differs slightly from the original site.',
+    noticeFirstLoad: 'The first visit downloads about 12 MB of data; later visits use the browser cache.',
+    noticeChars: 'characters',
+    noticeSubjects: 'works'
   }
 };
 
@@ -54,6 +68,18 @@ const Home = ({ locale = 'zh' }) => {
     const today = dayIndexOf();
     const p = loadDailyProgress();
     setDailyInfo({ played: p.day === today, streak: currentStreak(p, today) });
+  }, []);
+
+  // 数据快照信息：只取 version.json（约 300 B），不触发 31 MB 数据下载。
+  // 用于首页显示「数据截止日期 / 角色与作品规模」等必要提醒。
+  const [dataMeta, setDataMeta] = useState(null);
+  useEffect(() => {
+    if (!LOCAL_DATA_ENABLED) return undefined;
+    let alive = true;
+    fetchDataMeta().then(m => {
+      if (alive && m && m.v) setDataMeta(m);
+    });
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
@@ -127,6 +153,26 @@ const Home = ({ locale = 'zh' }) => {
     setShowWelcomePopup(false);
   };
 
+  const nf = new Intl.NumberFormat(isEnglish ? 'en-US' : 'zh-CN');
+  // 数据截止日期等必要提醒（数据来源均为本仓库，故日期取抓取快照日）
+  const noticeNode = (
+    <div className="home-notice">
+      <p className="home-notice-title">
+        <i className="fas fa-database" style={{ marginRight: '8px' }}></i>
+        {text.noticeTitle} · Bangumi {dataMeta && dataMeta.cutoff ? dataMeta.cutoff : '—'}
+        {dataMeta && dataMeta.chars
+          ? ` ｜ ${text.noticeChars} ${nf.format(dataMeta.chars)} · ${text.noticeSubjects} ${nf.format(dataMeta.subjects)}`
+          : ''}
+      </p>
+      <ul className="home-notice-list">
+        <li>{text.noticeData}</li>
+        <li>{text.noticeModes}</li>
+        <li>{text.noticeImages}</li>
+        <li>{text.noticeFirstLoad}</li>
+      </ul>
+    </div>
+  );
+
   if (isEnglish) {
     return (
       <div className="home-container home-container-en" lang="en" translate="no">
@@ -155,6 +201,7 @@ const Home = ({ locale = 'zh' }) => {
             </a>
           </p>
           <p className="home-tag-note">{text.tagTranslationNote}</p>
+          {noticeNode}
         </div>
       </div>
     );
@@ -184,6 +231,7 @@ const Home = ({ locale = 'zh' }) => {
           </small>
         </Link>
       </div>
+      {noticeNode}
       </div>
 
       <div className="home-footer">
